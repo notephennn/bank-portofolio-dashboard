@@ -71,13 +71,13 @@ src/
 Clone repository:
 
 ```bash
-git clone https://github.com/your-username/fintech-analytics-dashboard.git
+git clone https://github.com/notephennn/bank-portofolio-dashboard.git
 ```
 
 Go to project directory:
 
 ```bash
-cd fintech-analytics-dashboard
+cd bank-portofolio-dashboard
 ```
 
 Install dependencies:
