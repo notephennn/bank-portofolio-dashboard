@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
+import "../styles/dashboard.css";
 import Papa from "papaparse";
 import {
   ResponsiveContainer,
@@ -49,274 +50,6 @@ async function fetchQuote(ticker) {
 const N = (v) => (v != null && Number.isFinite(v) ? Math.round(v).toLocaleString("id-ID") : "—");
 const P = (v) => (v != null && Number.isFinite(v) ? `${v >= 0 ? "+" : ""}${v.toFixed(2)}%` : "—");
 const TODAY = () => new Date().toISOString().slice(0, 10);
-
-const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500;700&display=swap');
-
-:root{
-  --bg:#0D0F14;
-  --border:rgba(255,255,255,.06);
-  --border2:rgba(255,255,255,.12);
-  --text:#D8DCE8;
-  --muted:#6B7280;
-  --up:#5BA47A;
-  --dn:#C26B6B;
-  --mono:'DM Mono', monospace;
-  --sans:'DM Sans', sans-serif;
-}
-
-*{margin:0;padding:0;box-sizing:border-box;}
-html,body,#root{width:100%;height:100%;overflow:hidden;background:var(--bg);}
-
-.root{
-  width:100%;
-  height:100vh;
-  background:var(--bg);
-  color:var(--text);
-  font-family:var(--sans);
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-}
-
-.topbar{
-  height:52px;
-  min-height:52px;
-  display:flex;
-  align-items:center;
-  padding:0 18px;
-  border-bottom:1px solid var(--border);
-  background:#10131A;
-}
-
-.logo{display:flex;align-items:center;gap:12px;}
-.mark{
-  width:28px;height:28px;border-radius:6px;background:#C9A84C;
-  display:flex;align-items:center;justify-content:center;
-  color:#111;font-size:11px;font-weight:700;font-family:var(--mono);
-}
-.logo-title{font-size:15px;font-weight:700;}
-.logo-sub{font-size:10px;color:var(--muted);font-family:var(--mono);letter-spacing:.12em;}
-
-.body{
-  flex:1;
-  display:grid;
-  grid-template-columns:minmax(220px,260px) minmax(0,1fr) minmax(250px,300px);
-  min-height:0;
-  overflow:hidden;
-}
-
-.left,.right{
-  background:#11151C;
-  overflow-y:auto;
-  overflow-x:hidden;
-}
-
-.left{border-right:1px solid var(--border);}
-.right{border-left:1px solid var(--border);}
-
-.center{
-  min-width:0;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-}
-
-.panel-title{
-  padding:14px 16px;
-  border-bottom:1px solid var(--border);
-  font-size:11px;
-  font-family:var(--mono);
-  letter-spacing:.12em;
-  color:var(--muted);
-}
-
-.kpi{
-  padding:16px;
-  border-bottom:1px solid var(--border);
-}
-
-.kpi-label{
-  font-size:11px;
-  color:var(--muted);
-  margin-bottom:8px;
-}
-
-.kpi-value{
-  font-size:28px;
-  font-weight:700;
-  font-family:var(--mono);
-}
-
-.kpi-sub{
-  margin-top:8px;
-  font-size:12px;
-  font-family:var(--mono);
-}
-
-.tabs{
-  display:flex;
-  gap:8px;
-  padding:14px 18px 0;
-  flex-wrap:wrap;
-}
-
-.tab{
-  border:none;
-  padding:10px 16px;
-  border-radius:8px;
-  background:#1B2029;
-  color:#9CA3AF;
-  cursor:pointer;
-  font-family:var(--mono);
-  font-size:12px;
-  transition:.15s;
-}
-
-.tab:hover{background:#232834;}
-.tab.active{color:#111;font-weight:700;}
-
-.mode-badge{
-  margin-left:auto;
-  padding:10px 14px;
-  border:1px solid var(--border);
-  border-radius:8px;
-  color:var(--muted);
-  font-family:var(--mono);
-  font-size:11px;
-}
-
-.range{
-  display:flex;
-  gap:6px;
-  padding:14px 18px 0;
-}
-
-.range button{
-  border:none;
-  background:#1B2029;
-  color:#9CA3AF;
-  height:28px;
-  padding:0 12px;
-  border-radius:6px;
-  cursor:pointer;
-  font-family:var(--mono);
-  font-size:11px;
-}
-
-.range button.active{
-  background:#C9A84C;
-  color:#111;
-  font-weight:700;
-}
-
-.chart-header{
-  padding:18px 22px 0;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  flex-wrap:wrap;
-}
-
-.chart-symbol{
-  font-size:24px;
-  font-family:var(--mono);
-  font-weight:700;
-}
-
-.chart-name{
-  color:var(--muted);
-  font-size:13px;
-}
-
-.chart-price{
-  margin-left:auto;
-  font-size:24px;
-  font-family:var(--mono);
-  font-weight:700;
-}
-
-.chart-wrap{
-  flex:1;
-  min-height:0;
-  padding:12px 18px 6px;
-}
-
-.bottom-chart{
-  height:170px;
-  border-top:1px solid var(--border);
-  padding:12px 18px;
-}
-
-.stat{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:14px;
-  padding:14px 16px;
-  border-bottom:1px solid var(--border);
-}
-
-.stat-label{
-  font-size:12px;
-  color:var(--muted);
-}
-
-.stat-value{
-  font-family:var(--mono);
-  font-size:12px;
-  font-weight:600;
-  text-align:right;
-}
-
-.insight-box{
-  padding:16px;
-  border-bottom:1px solid var(--border);
-  color:#AAB1C2;
-  font-size:13px;
-  line-height:1.55;
-}
-
-.rank-row{
-  display:grid;
-  grid-template-columns:42px 1fr auto;
-  gap:10px;
-  padding:12px 16px;
-  border-bottom:1px solid var(--border);
-  align-items:center;
-  font-family:var(--mono);
-  font-size:12px;
-}
-
-.rank-name{font-weight:700;}
-.rank-meta{color:var(--muted);font-size:10px;margin-top:4px;}
-.rank-value{font-weight:700;}
-
-.tip{
-  background:#1A1E28;
-  border:1px solid var(--border2);
-  border-radius:8px;
-  padding:10px 12px;
-  font-family:var(--mono);
-}
-
-.tip-date{
-  margin-bottom:8px;
-  color:var(--muted);
-  font-size:10px;
-}
-
-.tip-row{
-  display:flex;
-  justify-content:space-between;
-  gap:18px;
-  margin-top:6px;
-  font-size:11px;
-}
-
-::-webkit-scrollbar{width:4px;}
-::-webkit-scrollbar-thumb{background:#2A2F3B;border-radius:99px;}
-`;
 
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
@@ -417,6 +150,20 @@ function generateDemo() {
   return rows;
 }
 
+function getMaxDrawdown(rows) {
+  let peak = rows[0]?.close || 0;
+  let maxDrawdown = 0;
+
+  rows.forEach((row) => {
+    if (row.close > peak) peak = row.close;
+
+    const drawdown = ((row.close - peak) / peak) * 100;
+    if (drawdown < maxDrawdown) maxDrawdown = drawdown;
+  });
+
+  return maxDrawdown;
+}
+
 export default function StockDashboard() {
   const [csvData, setCsvData] = useState([]);
   const [quotes, setQuotes] = useState({});
@@ -429,15 +176,6 @@ export default function StockDashboard() {
   const selected = selectedStocks[0];
   const isComparison = selectedStocks.length > 1;
   const meta = META[selected];
-
-  useEffect(() => {
-    if (!document.getElementById("__dashboard_style")) {
-      const style = document.createElement("style");
-      style.id = "__dashboard_style";
-      style.textContent = CSS;
-      document.head.appendChild(style);
-    }
-  }, []);
 
   useEffect(() => {
     fetch("/data/stocks_processed.csv")
@@ -632,12 +370,27 @@ export default function StockDashboard() {
 
         const riskReward = volatility !== 0 ? growth / volatility : 0;
 
+        let peak = sliced[0].close;
+        let maxDrawdown = 0;
+
+        sliced.forEach((row) => {
+          if (row.close > peak) peak = row.close;
+
+          const drawdown = ((row.close - peak) / peak) * 100;
+
+          if (drawdown < maxDrawdown) {
+            maxDrawdown = drawdown;
+          }
+        });
+
         return {
           stock,
           growth,
           volatility,
           winRate,
           riskReward,
+          maxDrawdown,
+          rows: sliced.slice(-35),
         };
       })
       .filter(Boolean)
@@ -1030,7 +783,7 @@ export default function StockDashboard() {
             </>
           ) : (
             <>
-              <div className="panel-title">COMPARISON INSIGHT</div>
+              <div className="panel-title">AI COMPARISON INSIGHT</div>
 
               <div className="insight-box">
                 {aiLoading
@@ -1038,29 +791,74 @@ export default function StockDashboard() {
                   : aiInsight || "AI insight belum tersedia. Pastikan server AI berjalan."}
               </div>
 
-              <div className="panel-title">PERFORMANCE RANKING</div>
+              <div className="panel-title">PERFORMANCE DETAILS</div>
 
-              {comparisonStats.map((item, index) => (
-                <div className="rank-row" key={item.stock}>
-                  <div>#{index + 1}</div>
-
-                  <div>
-                    <div className="rank-name" style={{ color: META[item.stock].hue }}>
-                      {item.stock}
-                    </div>
-                    <div className="rank-meta">
-                      Vol {item.volatility.toFixed(2)}% · Win {item.winRate.toFixed(1)}%
-                    </div>
-                  </div>
-
-                  <div
-                    className="rank-value"
-                    style={{ color: item.growth >= 0 ? "var(--up)" : "var(--dn)" }}
-                  >
-                    {P(item.growth)}
-                  </div>
+              <div className="performance-table">
+                <div className="performance-head">
+                  <span>Ticker</span>
+                  <span>Return</span>
+                  <span>Vol</span>
+                  <span>Win</span>
+                  <span>Drawdown</span>
                 </div>
-              ))}
+
+                {comparisonStats.map((item) => (
+                  <div className="performance-row" key={item.stock}>
+                    <span style={{ color: META[item.stock].hue }}>{item.stock}</span>
+
+                    <span style={{ color: item.growth >= 0 ? "var(--green)" : "var(--red)" }}>
+                      {P(item.growth)}
+                    </span>
+
+                    <span>{item.volatility.toFixed(2)}%</span>
+
+                    <span>{item.winRate.toFixed(1)}%</span>
+
+                    <span style={{ color: "var(--red)" }}>{P(item.maxDrawdown)}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="performance-table">
+                <div className="performance-head">
+                  <span>Ticker</span>
+                  <span>Return</span>
+                  <span>Vol</span>
+                  <span>Win</span>
+                  <span>Drawdown</span>
+                </div>
+
+                {comparisonStats.map((item) => (
+                  <div className="performance-row" key={item.stock}>
+                    <span style={{ color: META[item.stock].hue }}>
+                      {item.stock}
+                    </span>
+
+                    <span
+                      style={{
+                        color:
+                          item.growth >= 0
+                            ? "var(--green)"
+                            : "var(--red)",
+                      }}
+                    >
+                      {P(item.growth)}
+                    </span>
+
+                    <span>
+                      {item.volatility.toFixed(2)}%
+                    </span>
+
+                    <span>
+                      {item.winRate.toFixed(1)}%
+                    </span>
+
+                    <span style={{ color: "var(--red)" }}>
+                      {P(item.maxDrawdown)}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </>
           )}
 

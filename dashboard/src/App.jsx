@@ -1,4 +1,4 @@
-import StockDashboard from "./components/StockDashboard";
+import StockDashboard from "./pages/StockDashboard";
 
 function App() {
   return <StockDashboard />;
