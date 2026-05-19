@@ -7,4 +7,6 @@ __pycache__/
 
 data/*.csv
 
-.DS_Store
+.DS_Storeserver/.env 
+server/.env 
+server/.env 
