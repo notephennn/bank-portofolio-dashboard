@@ -20,16 +20,30 @@ import {
 const STOCKS = ["BBCA", "BBRI", "BMRI", "BBNI"];
 
 const META = {
-  BBCA: { name: "Bank Central Asia", short: "BCA", ticker: "BBCA.JK", hue: "#C9A84C" },
-  BBRI: { name: "Bank Rakyat Indonesia", short: "BRI", ticker: "BBRI.JK", hue: "#6E9ECC" },
-  BMRI: { name: "Bank Mandiri", short: "BMRI", ticker: "BMRI.JK", hue: "#8FA876" },
-  BBNI: { name: "Bank Negara Indonesia", short: "BNI", ticker: "BBNI.JK", hue: "#B07BAC" },
+  BBCA: { name: "Bank Central Asia", ticker: "BBCA.JK", hue: "#C9A84C" },
+  BBRI: { name: "Bank Rakyat Indonesia", ticker: "BBRI.JK", hue: "#6E9ECC" },
+  BMRI: { name: "Bank Mandiri", ticker: "BMRI.JK", hue: "#8FA876" },
+  BBNI: { name: "Bank Negara Indonesia", ticker: "BBNI.JK", hue: "#B07BAC" },
 };
 
 const REFRESH = 60;
 
+const N = (v) =>
+  v != null && Number.isFinite(v)
+    ? Math.round(v).toLocaleString("id-ID")
+    : "—";
+
+const P = (v) =>
+  v != null && Number.isFinite(v)
+    ? `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`
+    : "—";
+
+const TODAY = () => new Date().toISOString().slice(0, 10);
+
 function isOpen() {
-  const w = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+  const w = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
+  );
   const d = w.getDay();
   const m = w.getHours() * 60 + w.getMinutes();
   return d >= 1 && d <= 5 && m >= 540 && m <= 915;
@@ -38,82 +52,28 @@ function isOpen() {
 async function fetchQuote(ticker) {
   try {
     const r = await fetch(`http://localhost:3001/api/quote/${ticker}`);
-
     if (!r.ok) throw new Error();
-
     return await r.json();
   } catch {
     return null;
   }
 }
 
-const N = (v) => (v != null && Number.isFinite(v) ? Math.round(v).toLocaleString("id-ID") : "—");
-const P = (v) => (v != null && Number.isFinite(v) ? `${v >= 0 ? "+" : ""}${v.toFixed(2)}%` : "—");
-const TODAY = () => new Date().toISOString().slice(0, 10);
+function getMaxDrawdown(rows) {
+  let peak = rows[0]?.close || 0;
+  let maxDrawdown = 0;
 
-function CustomTooltip({ active, payload, label }) {
-  if (!active || !payload?.length) return null;
+  rows.forEach((row) => {
+    if (row.close > peak) peak = row.close;
+    const drawdown = ((row.close - peak) / peak) * 100;
+    if (drawdown < maxDrawdown) maxDrawdown = drawdown;
+  });
 
-  return (
-    <div className="tip">
-      <div className="tip-date">{label}</div>
-
-      {payload.map((p, i) => {
-        const isReturn =
-          p.name === "Return" ||
-          p.name === "Growth" ||
-          STOCKS.includes(p.name);
-
-        return (
-          <div className="tip-row" key={i}>
-            <span>{p.name}</span>
-            <span style={{ color: p.color }}>
-              {isReturn ? P(Number(p.value)) : `Rp ${N(p.value)}`}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function Clock() {
-  const [time, setTime] = useState("");
-
-  useEffect(() => {
-    const tick = () => {
-      setTime(
-        new Date().toLocaleTimeString("id-ID", {
-          timeZone: "Asia/Jakarta",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        })
-      );
-    };
-
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  return (
-    <div
-      style={{
-        marginLeft: "auto",
-        fontFamily: "var(--mono)",
-        color: "var(--muted)",
-        fontSize: 12,
-      }}
-    >
-      {time} WIB
-    </div>
-  );
+  return maxDrawdown;
 }
 
 function generateDemo() {
   const rows = [];
-
   const base = {
     BBCA: 9200,
     BBRI: 4800,
@@ -150,24 +110,60 @@ function generateDemo() {
   return rows;
 }
 
-function getMaxDrawdown(rows) {
-  let peak = rows[0]?.close || 0;
-  let maxDrawdown = 0;
+function CustomTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
 
-  rows.forEach((row) => {
-    if (row.close > peak) peak = row.close;
+  return (
+    <div className="tip">
+      <div className="tip-date">{label}</div>
 
-    const drawdown = ((row.close - peak) / peak) * 100;
-    if (drawdown < maxDrawdown) maxDrawdown = drawdown;
-  });
+      {payload.map((p, i) => {
+        const isReturn =
+          p.name === "Return" ||
+          p.name === "Growth" ||
+          p.name === "value" ||
+          STOCKS.includes(p.name);
 
-  return maxDrawdown;
+        return (
+          <div className="tip-row" key={i}>
+            <span>{p.name}</span>
+            <strong style={{ color: p.color }}>
+              {isReturn ? P(Number(p.value)) : `Rp ${N(p.value)}`}
+            </strong>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function Clock() {
+  const [time, setTime] = useState("");
+
+  useEffect(() => {
+    const tick = () => {
+      setTime(
+        new Date().toLocaleTimeString("id-ID", {
+          timeZone: "Asia/Jakarta",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        })
+      );
+    };
+
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  return <div className="clock">{time} WIB</div>;
 }
 
 export default function StockDashboard() {
   const [csvData, setCsvData] = useState([]);
   const [quotes, setQuotes] = useState({});
-  const [selectedStocks, setSelectedStocks] = useState(["BBCA"]);
+  const [selectedStocks, setSelectedStocks] = useState(["BBCA", "BBRI"]);
   const [range, setRange] = useState("ALL");
   const [lastUpdate, setLastUpdate] = useState(null);
   const [aiInsight, setAiInsight] = useState("");
@@ -201,9 +197,7 @@ export default function StockDashboard() {
 
         setCsvData(clean);
       })
-      .catch(() => {
-        setCsvData(generateDemo());
-      });
+      .catch(() => setCsvData(generateDemo()));
   }, []);
 
   const fetchRealtime = useCallback(async () => {
@@ -275,9 +269,10 @@ export default function StockDashboard() {
     [csvData, quotes]
   );
 
-  const mergedData = useMemo(() => {
-    return getMergedRows(selected);
-  }, [getMergedRows, selected]);
+  const mergedData = useMemo(
+    () => getMergedRows(selected),
+    [getMergedRows, selected]
+  );
 
   const displayData = useMemo(() => {
     if (range === "ALL") return mergedData;
@@ -300,13 +295,7 @@ export default function StockDashboard() {
       const sliced =
         range === "ALL"
           ? rows
-          : rows.slice(
-              -{
-                "1M": 22,
-                "3M": 66,
-                "6M": 132,
-              }[range]
-            );
+          : rows.slice(-{ "1M": 22, "3M": 66, "6M": 132 }[range]);
 
       if (sliced.length < 2) return;
 
@@ -332,13 +321,7 @@ export default function StockDashboard() {
         const sliced =
           range === "ALL"
             ? rows
-            : rows.slice(
-                -{
-                  "1M": 22,
-                  "3M": 66,
-                  "6M": 132,
-                }[range]
-              );
+            : rows.slice(-{ "1M": 22, "3M": 66, "6M": 132 }[range]);
 
         if (sliced.length < 2) return null;
 
@@ -368,28 +351,16 @@ export default function StockDashboard() {
             ? (returns.filter((x) => x > 0).length / returns.length) * 100
             : 0;
 
+        const maxDrawdown = getMaxDrawdown(sliced);
         const riskReward = volatility !== 0 ? growth / volatility : 0;
-
-        let peak = sliced[0].close;
-        let maxDrawdown = 0;
-
-        sliced.forEach((row) => {
-          if (row.close > peak) peak = row.close;
-
-          const drawdown = ((row.close - peak) / peak) * 100;
-
-          if (drawdown < maxDrawdown) {
-            maxDrawdown = drawdown;
-          }
-        });
 
         return {
           stock,
           growth,
           volatility,
           winRate,
-          riskReward,
           maxDrawdown,
+          riskReward,
           rows: sliced.slice(-35),
         };
       })
@@ -398,39 +369,32 @@ export default function StockDashboard() {
   }, [selectedStocks, getMergedRows, range]);
 
   useEffect(() => {
-  if (!isComparison || comparisonStats.length < 2) {
-    setAiInsight("");
-    return;
-  }
-
-  const timer = setTimeout(async () => {
-    try {
-      setAiLoading(true);
-
-      const res = await fetch("http://localhost:3001/api/stock-insight", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          selectedStocks,
-          range,
-          comparisonStats,
-        }),
-      });
-
-      const data = await res.json();
-
-      setAiInsight(data.insight || data.error || "AI insight belum tersedia.");
-    } catch {
-      setAiInsight("AI insight gagal dimuat. Pastikan server AI berjalan.");
-    } finally {
-      setAiLoading(false);
+    if (!isComparison || comparisonStats.length < 2) {
+      setAiInsight("");
+      return;
     }
-  }, 700);
 
-  return () => clearTimeout(timer);
-}, [isComparison, selectedStocks, range, comparisonStats]);
+    const timer = setTimeout(async () => {
+      try {
+        setAiLoading(true);
+
+        const res = await fetch("http://localhost:3001/api/stock-insight", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ selectedStocks, range, comparisonStats }),
+        });
+
+        const data = await res.json();
+        setAiInsight(data.insight || data.error || "AI insight belum tersedia.");
+      } catch {
+        setAiInsight("AI insight gagal dimuat. Pastikan server AI berjalan.");
+      } finally {
+        setAiLoading(false);
+      }
+    }, 700);
+
+    return () => clearTimeout(timer);
+  }, [isComparison, selectedStocks, range, comparisonStats]);
 
   const topStock = comparisonStats[0];
   const worstStock = comparisonStats[comparisonStats.length - 1];
@@ -439,14 +403,12 @@ export default function StockDashboard() {
   const first = displayData[0];
 
   const q = quotes[selected];
-
   const price = q?.price ?? last?.close;
 
   const daily =
     q && q.prev ? ((q.price - q.prev) / q.prev) * 100 : last?.dailyReturn;
 
-  const period =
-    first && price ? ((price - first.close) / first.close) * 100 : 0;
+  const period = first && price ? ((price - first.close) / first.close) * 100 : 0;
 
   const stats = useMemo(() => {
     const closes = displayData.map((x) => x.close).filter(Number.isFinite);
@@ -470,138 +432,150 @@ export default function StockDashboard() {
       <div className="topbar">
         <div className="logo">
           <div className="mark">IDX</div>
-
           <div>
             <div className="logo-title">FINTECH ANALYTICS</div>
             <div className="logo-sub">INDONESIAN BANKING</div>
           </div>
         </div>
 
-        <Clock />
+        <div className="topbar-right">
+          <div className="date-pill">2024-01-01 → 2026-05-13</div>
+          <Clock />
+        </div>
       </div>
 
       <div className="body">
-        <div className="left">
-          <div className="panel-title">
-            {isComparison ? "COMPARISON MODE" : `${selected} OVERVIEW`}
-          </div>
+        <aside className="left">
+          <div className="nav-card active">Dashboard</div>
+          <div className="nav-item">Comparison</div>
+          <div className="nav-item">Performance</div>
+          <div className="nav-item">AI Insight</div>
 
-          {!isComparison ? (
+          <div className="side-divider" />
+
+          <div className="panel-title">COMPARISON MODE</div>
+
+          {isComparison ? (
+            <>
+              <div className="kpi">
+                <div className="kpi-label">SELECTED STOCKS</div>
+                <div className="selected-list">{selectedStocks.join(" / ")}</div>
+              </div>
+
+              <div className="kpi compact">
+                <div>
+                  <div className="kpi-label">TOP PERFORMER</div>
+                  <div
+                    className="kpi-value"
+                    style={{ color: META[topStock?.stock]?.hue }}
+                  >
+                    {topStock?.stock}
+                  </div>
+                </div>
+                <div className="kpi-sub positive">{P(topStock?.growth)}</div>
+              </div>
+
+              <div className="kpi compact">
+                <div>
+                  <div className="kpi-label">WEAKEST PERFORMER</div>
+                  <div className="kpi-value danger">{worstStock?.stock}</div>
+                </div>
+                <div className="kpi-sub negative">{P(worstStock?.growth)}</div>
+              </div>
+            </>
+          ) : (
             <>
               <div className="kpi">
                 <div className="kpi-label">LAST PRICE</div>
-
                 <div className="kpi-value" style={{ color: meta.hue }}>
                   Rp {N(price)}
                 </div>
-
-                <div
-                  className="kpi-sub"
-                  style={{ color: daily >= 0 ? "var(--up)" : "var(--dn)" }}
-                >
+                <div className={daily >= 0 ? "kpi-sub positive" : "kpi-sub negative"}>
                   {P(daily)}
                 </div>
               </div>
 
               <div className="kpi">
                 <div className="kpi-label">PERIOD RETURN</div>
-
-                <div
-                  className="kpi-value"
-                  style={{ color: period >= 0 ? "var(--up)" : "var(--dn)" }}
-                >
+                <div className={period >= 0 ? "kpi-value positive" : "kpi-value negative"}>
                   {P(period)}
-                </div>
-              </div>
-
-              <div className="kpi">
-                <div className="kpi-label">MA20 SIGNAL</div>
-
-                <div
-                  className="kpi-value"
-                  style={{
-                    color: price >= last?.ma20 ? "var(--up)" : "var(--dn)",
-                  }}
-                >
-                  {price >= last?.ma20 ? "Bullish" : "Bearish"}
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="kpi">
-                <div className="kpi-label">SELECTED STOCKS</div>
-                <div className="kpi-value" style={{ fontSize: 22 }}>
-                  {selectedStocks.join(" / ")}
-                </div>
-              </div>
-
-              <div className="kpi">
-                <div className="kpi-label">TOP PERFORMER</div>
-                <div
-                  className="kpi-value"
-                  style={{ color: META[topStock?.stock]?.hue, fontSize: 26 }}
-                >
-                  {topStock?.stock}
-                </div>
-                <div className="kpi-sub" style={{ color: "var(--up)" }}>
-                  {P(topStock?.growth)}
-                </div>
-              </div>
-
-              <div className="kpi">
-                <div className="kpi-label">WEAKEST PERFORMER</div>
-                <div className="kpi-value" style={{ color: "var(--dn)", fontSize: 26 }}>
-                  {worstStock?.stock}
-                </div>
-                <div className="kpi-sub" style={{ color: "var(--dn)" }}>
-                  {P(worstStock?.growth)}
                 </div>
               </div>
             </>
           )}
-        </div>
 
-        <div className="center">
-          <div className="tabs">
-            {STOCKS.map((s) => (
-              <button
-                key={s}
-                className={`tab ${selectedStocks.includes(s) ? "active" : ""}`}
-                style={{
-                  background: selectedStocks.includes(s) ? META[s].hue : "#1B2029",
-                }}
-                onClick={() => toggleStock(s)}
-              >
-                {s}
-              </button>
-            ))}
+          <div className="market-card">
+            <div className="market-dot-row">
+              <span className={isOpen() ? "status-dot open" : "status-dot closed"} />
+              <strong>{isOpen() ? "MARKET OPEN" : "MARKET CLOSED"}</strong>
+            </div>
+            <p>Last Update</p>
+            <span>{lastUpdate ? lastUpdate.toLocaleTimeString("id-ID") : "—"} WIB</span>
+          </div>
+        </aside>
+
+        <main className="center">
+          <div className="control-row">
+            <div className="tabs">
+              {STOCKS.map((s) => (
+                <button
+                  key={s}
+                  className={`tab ${selectedStocks.includes(s) ? "active" : ""}`}
+                  style={{
+                    background: selectedStocks.includes(s)
+                      ? META[s].hue
+                      : undefined,
+                  }}
+                  onClick={() => toggleStock(s)}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+
+            <div className="range">
+              {["1M", "3M", "6M", "ALL"].map((r) => (
+                <button
+                  key={r}
+                  className={range === r ? "active" : ""}
+                  onClick={() => setRange(r)}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
 
             <div className="mode-badge">
               {isComparison ? "NORMALIZED COMPARISON" : "SINGLE STOCK"}
             </div>
           </div>
 
-          <div className="range">
-            {["1M", "3M", "6M", "ALL"].map((r) => (
-              <button
-                key={r}
-                className={range === r ? "active" : ""}
-                onClick={() => setRange(r)}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
-
           <div className="chart-header">
-            <div className="chart-symbol">
-              {isComparison ? selectedStocks.join(" VS ") : selected}
+            <div>
+              <div className="chart-symbol">
+                {isComparison ? selectedStocks.join(" VS ") : selected}
+              </div>
+              <div className="chart-name">
+                {isComparison ? "Normalized Growth Comparison" : meta.name}
+              </div>
             </div>
 
-            <div className="chart-name">
-              {isComparison ? "Normalized Growth Comparison" : meta.name}
-            </div>
+            {isComparison && (
+              <div className="inline-metrics">
+                {comparisonStats.map((item) => (
+                  <div key={item.stock}>
+                    <span style={{ color: META[item.stock].hue }}>{item.stock}</span>
+                    <strong
+                      style={{
+                        color: item.growth >= 0 ? "var(--green)" : "var(--red)",
+                      }}
+                    >
+                      {P(item.growth)}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {!isComparison && (
               <div className="chart-price" style={{ color: meta.hue }}>
@@ -610,25 +584,18 @@ export default function StockDashboard() {
             )}
           </div>
 
-          <div className="chart-wrap">
+          <section className="chart-wrap">
             <ResponsiveContainer width="100%" height="100%">
               {isComparison ? (
                 <LineChart data={comparisonData}>
                   <CartesianGrid strokeDasharray="4 4" stroke="#1F2430" vertical={false} />
-
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fill: "#6B7280", fontSize: 10 }}
-                  />
-
+                  <XAxis dataKey="date" tick={{ fill: "#6B7280", fontSize: 10 }} />
                   <YAxis
                     tick={{ fill: "#6B7280", fontSize: 10 }}
                     width={50}
                     tickFormatter={(v) => `${v}%`}
                   />
-
                   <Tooltip content={<CustomTooltip />} />
-
                   <ReferenceLine y={0} stroke="rgba(255,255,255,.18)" />
 
                   {selectedStocks.map((s) => (
@@ -638,8 +605,10 @@ export default function StockDashboard() {
                       dataKey={s}
                       name={s}
                       stroke={META[s].hue}
-                      strokeWidth={2.4}
+                      strokeWidth={2.8}
                       dot={false}
+                      isAnimationActive
+                      animationDuration={900}
                     />
                   ))}
                 </LineChart>
@@ -647,17 +616,14 @@ export default function StockDashboard() {
                 <AreaChart data={displayData}>
                   <defs>
                     <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={meta.hue} stopOpacity={0.3} />
+                      <stop offset="5%" stopColor={meta.hue} stopOpacity={0.32} />
                       <stop offset="95%" stopColor={meta.hue} stopOpacity={0} />
                     </linearGradient>
                   </defs>
 
                   <CartesianGrid strokeDasharray="4 4" stroke="#1F2430" vertical={false} />
-
                   <XAxis dataKey="date" tick={{ fill: "#6B7280", fontSize: 10 }} />
-
                   <YAxis tick={{ fill: "#6B7280", fontSize: 10 }} width={44} />
-
                   <Tooltip content={<CustomTooltip />} />
 
                   <Area
@@ -665,7 +631,7 @@ export default function StockDashboard() {
                     dataKey="close"
                     name="Price"
                     stroke={meta.hue}
-                    strokeWidth={2}
+                    strokeWidth={2.4}
                     fill="url(#grad)"
                     dot={false}
                   />
@@ -674,59 +640,89 @@ export default function StockDashboard() {
                     type="monotone"
                     dataKey="ma20"
                     name="MA20"
-                    stroke="rgba(255,255,255,.25)"
+                    stroke="rgba(255,255,255,.28)"
                     dot={false}
                     strokeDasharray="4 4"
                   />
-
-                  <ReferenceLine y={price} stroke={meta.hue} strokeOpacity={0.3} />
                 </AreaChart>
               )}
             </ResponsiveContainer>
-          </div>
+          </section>
 
-          <div className="bottom-chart">
-            <ResponsiveContainer width="100%" height="100%">
-              {isComparison ? (
-                <BarChart data={comparisonStats}>
-                  <CartesianGrid strokeDasharray="4 4" stroke="#1F2430" vertical={false} />
+          {isComparison ? (
+            <section className="return-section">
+              <div className="section-title">Return Comparison</div>
 
-                  <XAxis
-                    dataKey="stock"
-                    tick={{ fill: "#6B7280", fontSize: 10 }}
-                  />
+              <div className="return-grid">
+                {comparisonStats.map((item) => {
+                  const base = item.rows[0]?.close || 1;
+                  const miniData = item.rows.map((row) => ({
+                    date: row.date,
+                    value: ((row.close - base) / base) * 100,
+                  }));
 
-                  <YAxis
-                    tick={{ fill: "#6B7280", fontSize: 10 }}
-                    width={42}
-                    tickFormatter={(v) => `${v}%`}
-                  />
+                  return (
+                    <div className="return-card" key={item.stock}>
+                      <div className="return-card-head">
+                        <span style={{ color: META[item.stock].hue }}>
+                          {item.stock}
+                        </span>
+                        <strong
+                          style={{
+                            color: item.growth >= 0 ? "var(--green)" : "var(--red)",
+                          }}
+                        >
+                          {P(item.growth)}
+                        </strong>
+                      </div>
 
-                  <Tooltip content={<CustomTooltip />} />
+                      <div className="return-label">Total Return ({range})</div>
 
-                  <ReferenceLine y={0} stroke="rgba(255,255,255,.12)" />
+                      <div className="mini-chart">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={miniData}>
+                            <Line
+                              type="monotone"
+                              dataKey="value"
+                              stroke={META[item.stock].hue}
+                              strokeWidth={2}
+                              dot={false}
+                              isAnimationActive={false}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
 
-                  <Bar dataKey="growth" name="Growth">
-                    {comparisonStats.map((d, i) => (
-                      <Cell
-                        key={i}
-                        fill={d.growth >= 0 ? META[d.stock].hue : "#C26B6B"}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              ) : (
+                      <div className="return-metrics">
+                        <div>
+                          <span>Volatility</span>
+                          <strong>{item.volatility.toFixed(2)}%</strong>
+                        </div>
+
+                        <div>
+                          <span>Win Ratio</span>
+                          <strong>{item.winRate.toFixed(1)}%</strong>
+                        </div>
+
+                        <div>
+                          <span>Max Drawdown</span>
+                          <strong className="negative">{P(item.maxDrawdown)}</strong>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          ) : (
+            <section className="bottom-chart">
+              <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={displayData}>
                   <CartesianGrid strokeDasharray="4 4" stroke="#1F2430" vertical={false} />
-
                   <XAxis dataKey="date" hide />
-
                   <YAxis tick={{ fill: "#6B7280", fontSize: 10 }} width={42} />
-
                   <Tooltip content={<CustomTooltip />} />
-
                   <ReferenceLine y={0} stroke="rgba(255,255,255,.12)" />
-
                   <Bar dataKey="dailyReturn" name="Return">
                     {displayData.map((d, i) => (
                       <Cell
@@ -736,49 +732,39 @@ export default function StockDashboard() {
                     ))}
                   </Bar>
                 </BarChart>
-              )}
-            </ResponsiveContainer>
-          </div>
-        </div>
+              </ResponsiveContainer>
+            </section>
+          )}
+        </main>
 
-        <div className="right">
+        <aside className="right">
           {!isComparison ? (
             <>
               <div className="panel-title">STATISTICS</div>
 
               <div className="stat">
-                <span className="stat-label">Period High</span>
-                <span className="stat-value" style={{ color: "#5BA47A" }}>
-                  Rp {N(stats.high)}
-                </span>
+                <span>Period High</span>
+                <strong className="positive">Rp {N(stats.high)}</strong>
               </div>
 
               <div className="stat">
-                <span className="stat-label">Period Low</span>
-                <span className="stat-value" style={{ color: "#C26B6B" }}>
-                  Rp {N(stats.low)}
-                </span>
+                <span>Period Low</span>
+                <strong className="negative">Rp {N(stats.low)}</strong>
               </div>
 
               <div className="stat">
-                <span className="stat-label">Best Day</span>
-                <span className="stat-value" style={{ color: "#5BA47A" }}>
-                  {P(stats.best)}
-                </span>
+                <span>Best Day</span>
+                <strong className="positive">{P(stats.best)}</strong>
               </div>
 
               <div className="stat">
-                <span className="stat-label">Worst Day</span>
-                <span className="stat-value" style={{ color: "#C26B6B" }}>
-                  {P(stats.worst)}
-                </span>
+                <span>Worst Day</span>
+                <strong className="negative">{P(stats.worst)}</strong>
               </div>
 
               <div className="stat">
-                <span className="stat-label">Win Rate</span>
-                <span className="stat-value" style={{ color: meta.hue }}>
-                  {stats.win}%
-                </span>
+                <span>Win Rate</span>
+                <strong style={{ color: meta.hue }}>{stats.win}%</strong>
               </div>
             </>
           ) : (
@@ -805,84 +791,43 @@ export default function StockDashboard() {
                 {comparisonStats.map((item) => (
                   <div className="performance-row" key={item.stock}>
                     <span style={{ color: META[item.stock].hue }}>{item.stock}</span>
-
-                    <span style={{ color: item.growth >= 0 ? "var(--green)" : "var(--red)" }}>
-                      {P(item.growth)}
-                    </span>
-
-                    <span>{item.volatility.toFixed(2)}%</span>
-
-                    <span>{item.winRate.toFixed(1)}%</span>
-
-                    <span style={{ color: "var(--red)" }}>{P(item.maxDrawdown)}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="performance-table">
-                <div className="performance-head">
-                  <span>Ticker</span>
-                  <span>Return</span>
-                  <span>Vol</span>
-                  <span>Win</span>
-                  <span>Drawdown</span>
-                </div>
-
-                {comparisonStats.map((item) => (
-                  <div className="performance-row" key={item.stock}>
-                    <span style={{ color: META[item.stock].hue }}>
-                      {item.stock}
-                    </span>
-
                     <span
                       style={{
-                        color:
-                          item.growth >= 0
-                            ? "var(--green)"
-                            : "var(--red)",
+                        color: item.growth >= 0 ? "var(--green)" : "var(--red)",
                       }}
                     >
                       {P(item.growth)}
                     </span>
-
-                    <span>
-                      {item.volatility.toFixed(2)}%
-                    </span>
-
-                    <span>
-                      {item.winRate.toFixed(1)}%
-                    </span>
-
-                    <span style={{ color: "var(--red)" }}>
-                      {P(item.maxDrawdown)}
-                    </span>
+                    <span>{item.volatility.toFixed(2)}%</span>
+                    <span>{item.winRate.toFixed(1)}%</span>
+                    <span className="negative">{P(item.maxDrawdown)}</span>
                   </div>
                 ))}
               </div>
             </>
           )}
 
-          <div className="panel-title">MARKET STATUS</div>
+          <div className="panel-title">MARKET SUMMARY</div>
 
-          <div className="stat">
-            <span className="stat-label">Market</span>
+          <div className="market-summary">
+            <div>
+              <span>Market</span>
+              <strong className={isOpen() ? "positive" : "negative"}>
+                {isOpen() ? "OPEN" : "CLOSED"}
+              </strong>
+            </div>
 
-            <span
-              className="stat-value"
-              style={{ color: isOpen() ? "#5BA47A" : "#C26B6B" }}
-            >
-              {isOpen() ? "OPEN" : "CLOSED"}
-            </span>
+            <div>
+              <span>Last Update</span>
+              <strong>{lastUpdate ? lastUpdate.toLocaleTimeString("id-ID") : "—"}</strong>
+            </div>
+
+            <div>
+              <span>Refresh</span>
+              <strong>{REFRESH}s</strong>
+            </div>
           </div>
-
-          <div className="stat">
-            <span className="stat-label">Last Update</span>
-
-            <span className="stat-value">
-              {lastUpdate ? lastUpdate.toLocaleTimeString("id-ID") : "—"}
-            </span>
-          </div>
-        </div>
+        </aside>
       </div>
     </div>
   );
