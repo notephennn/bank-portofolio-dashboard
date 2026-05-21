@@ -119,3 +119,59 @@ app.post("/api/stock-insight", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Groq AI server running on port ${PORT}`);
 });
+
+app.post("/api/portfolio-insight", async (req, res) => {
+  try {
+    const { allocations, metrics, normalizedWeights } = req.body;
+
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are an AI portfolio analyst specializing in Indonesian banking stocks.",
+        },
+        {
+          role: "user",
+          content: `
+          Generate portfolio allocation insight in Bahasa Indonesia.
+
+          Allocation:
+          ${JSON.stringify(allocations, null, 2)}
+
+          Normalized Weights:
+          ${JSON.stringify(normalizedWeights, null, 2)}
+
+          Portfolio Metrics:
+          ${JSON.stringify(metrics, null, 2)}
+
+          Rules:
+          - Maksimal 4 kalimat
+          - Jelaskan risk profile
+          - Jelaskan saham yang terlalu dominan
+          - Jelaskan apakah allocation sudah balanced atau terlalu concentrated
+          - Jangan beri rekomendasi beli/jual
+          - Boleh beri rebalancing suggestion secara objektif
+          `,
+        },
+      ],
+      temperature: 0.5,
+    });
+
+    res.json({
+      insight:
+        completion?.choices?.[0]?.message?.content ||
+        "AI portfolio insight unavailable.",
+    });
+  } catch (error) {
+    console.error("GROQ PORTFOLIO ERROR:", error);
+
+    res.status(500).json({
+      error:
+        error?.response?.data?.error?.message ||
+        error?.message ||
+        "Failed to generate portfolio insight",
+    });
+  }
+});

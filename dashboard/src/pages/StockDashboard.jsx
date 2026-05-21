@@ -160,7 +160,7 @@ function Clock() {
   return <div className="clock">{time} WIB</div>;
 }
 
-export default function StockDashboard() {
+export default function StockDashboard({goToPage}) {
   const [csvData, setCsvData] = useState([]);
   const [quotes, setQuotes] = useState({});
   const [selectedStocks, setSelectedStocks] = useState(["BBCA", "BBRI"]);
@@ -446,10 +446,21 @@ export default function StockDashboard() {
 
       <div className="body">
         <aside className="left">
-          <div className="nav-card active">Dashboard</div>
-          <div className="nav-item">Comparison</div>
-          <div className="nav-item">Performance</div>
-          <div className="nav-item">AI Insight</div>
+          <button
+            type="button"
+            className="sidebar-link active"
+            onClick={() => goToPage("dashboard")}
+          >
+            Dashboard
+          </button>
+
+          <button
+            type="button"
+            className="sidebar-link"
+            onClick={() => goToPage("portofolio")}
+          >
+            Portofolio Simulator
+          </button>
 
           <div className="side-divider" />
 
