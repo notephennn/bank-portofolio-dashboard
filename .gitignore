@@ -1,12 +1,23 @@
+# Python
 venv/
-.env/
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
+# Environment
+.env
+server/.env
+
+# Data
 data/*.csv
 
-.DS_Storeserver/.env 
-server/.env 
-server/.env 
+# Node
+node_modules/
+dist/
+
+# OS
+.DS_Store
+
+# VSCode
+.vscode/
