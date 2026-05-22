@@ -1,264 +1,430 @@
-/* Dividend page only. Do not redefine .root, .topbar, .body, .left, or .sidebar-link here.
-   Those layout/sidebar styles are controlled by dashboard.css so every page stays consistent. */
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@400;500;700&display=swap");
 
-.dividend-center {
-  gap: 18px;
-  padding: 24px;
+:root {
+  --mono: "DM Mono", monospace;
+  --sans: "DM Sans", sans-serif;
+}
+
+.dividend-body {
+  grid-template-columns: 280px minmax(0, 1fr) !important;
+}
+
+/* JANGAN override .left / .sidebar-link agar sama dengan Dashboard & Portofolio */
+
+.div-page {
+  min-width: 0 !important;
+  min-height: 0 !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 22px !important;
+  padding: 26px !important;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(245, 200, 76, 0.08), transparent 28%),
+    radial-gradient(circle at 92% 10%, rgba(96, 165, 250, 0.08), transparent 30%),
+    rgba(3, 7, 13, 0.36) !important;
 }
 
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 22px;
-}
+/* HERO */
 
-.dividend-hero-card {
+.div-hero-clean {
+  width: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 330px;
+  grid-template-columns: minmax(0, 1fr) 360px;
   gap: 24px;
   align-items: stretch;
   padding: 30px;
-  border-radius: 28px;
+  border-radius: 30px;
   background:
-    radial-gradient(circle at 10% 0%, rgba(217, 185, 87, 0.16), transparent 34%),
-    radial-gradient(circle at 92% 8%, rgba(110, 168, 255, 0.12), transparent 32%),
-    linear-gradient(180deg, #101927, #08101a);
-  border: 1px solid var(--border);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+    radial-gradient(circle at top left, rgba(245, 200, 76, 0.14), transparent 30%),
+    radial-gradient(circle at top right, rgba(96, 165, 250, 0.1), transparent 30%),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.88));
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.32);
+  box-sizing: border-box;
 }
 
-.dividend-hero-card .eyebrow {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #d9b957;
-  font-weight: 800;
-  margin-bottom: 12px;
-}
-
-.dividend-hero-card h1 {
-  max-width: 860px;
-  margin: 0;
-  color: var(--text);
-  font-size: clamp(34px, 4vw, 58px);
-  line-height: 0.98;
-  letter-spacing: -0.07em;
-  font-weight: 900;
-}
-
-.dividend-hero-card p {
-  max-width: 760px;
-  margin-top: 16px;
-  color: var(--soft);
-  font-size: 15px;
-  line-height: 1.7;
-}
-
-.dividend-total-card {
-  min-height: 170px;
+.div-hero-left {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 24px;
-  border-radius: 24px;
-  background: rgba(5, 10, 16, 0.52);
-  border: 1px solid rgba(217, 185, 87, 0.18);
+  text-align: left;
 }
 
-.hero-card-label {
-  color: var(--muted);
+.div-eyebrow-clean {
+  margin-bottom: 14px;
+  color: #fde68a;
   font-size: 12px;
-  font-family: var(--mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 800;
-}
-
-.hero-card-value {
-  margin-top: 10px;
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: clamp(24px, 2.4vw, 36px);
-  line-height: 1;
   font-weight: 900;
-  letter-spacing: -0.06em;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
 }
 
-.hero-card-sub {
-  margin-top: 10px;
-  color: var(--soft);
+.div-hero-clean h1 {
+  max-width: 760px;
+  margin: 0;
+  color: #f8fafc;
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: clamp(38px, 3.65vw, 58px);
+  line-height: 1.02;
+  letter-spacing: -0.065em;
+  font-weight: 900;
+}
+
+.div-hero-clean p {
+  max-width: 720px;
+  margin: 18px 0 0;
+  color: #b7c3d5;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.div-hero-income {
+  min-width: 0;
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 26px;
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at top left, rgba(245, 200, 76, 0.08), transparent 38%),
+    rgba(2, 6, 23, 0.58);
+  border: 1px solid rgba(245, 200, 76, 0.18);
+}
+
+.div-hero-income span,
+.div-kpi-clean span,
+.div-section-label-clean {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.div-hero-income strong {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  color: #ffffff;
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: clamp(30px, 2.7vw, 44px);
+  line-height: 1;
+  letter-spacing: -0.045em;
+  white-space: nowrap;
+}
+
+.div-hero-income small {
+  margin-top: 12px;
+  color: #cbd5e1;
   font-size: 13px;
 }
 
-.dividend-kpi-grid {
+/* KPI */
+
+.div-kpi-grid-clean {
+  display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  width: 100%;
 }
 
-.dividend-kpi-grid .portfolio-metric-card small {
-  display: block;
-  margin-top: 8px;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.dividend-panel-card,
-.dividend-insight-card {
-  padding: 24px;
-  border-radius: 26px;
+.div-kpi-clean {
+  min-width: 0;
+  min-height: 150px;
+  padding: 22px;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
   background:
-    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 32%),
-    linear-gradient(180deg, #101927, #08101a);
-  border: 1px solid var(--border);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.26);
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.045), transparent 34%),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(6, 14, 24, 0.88));
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.24);
+  overflow: hidden;
 }
 
-.dividend-section-head {
+.div-kpi-clean strong {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  color: #f8fafc;
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: clamp(23px, 1.75vw, 30px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+}
+
+.div-kpi-clean small {
+  margin-top: 12px;
+  color: #98a6ba;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* PANELS */
+
+.div-panel-clean,
+.div-insight-clean {
+  width: 100%;
+  min-width: 0;
+  padding: 24px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.045), transparent 32%),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(6, 14, 24, 0.88));
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.28);
+  box-sizing: border-box;
+}
+
+.div-section-head-clean {
   display: flex;
   justify-content: space-between;
-  gap: 18px;
   align-items: flex-start;
-  margin-bottom: 18px;
+  gap: 18px;
+  margin-bottom: 20px;
 }
 
-.dividend-chart-title {
-  margin-top: 8px;
-  color: var(--text);
-  font-size: clamp(22px, 2.6vw, 34px);
-  line-height: 1;
-  letter-spacing: -0.06em;
+.div-section-head-clean h3 {
+  margin: 8px 0 0;
+  color: #f8fafc;
+  font-size: clamp(22px, 2vw, 30px);
   font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.055em;
 }
 
-.dividend-chart-box {
+.div-chart-clean {
   width: 100%;
-  height: 360px;
-  min-height: 360px;
+  height: 380px;
+  min-height: 380px;
 }
 
-.dividend-bar-box {
+.div-bar-clean {
   width: 100%;
   height: 300px;
   min-height: 300px;
 }
 
-.dividend-two-grid {
+.div-chart-clean .recharts-responsive-container,
+.div-bar-clean .recharts-responsive-container {
+  min-width: 0 !important;
+}
+
+/* TWO GRID */
+
+.div-two-grid-clean {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.75fr);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.75fr);
+  gap: 22px;
+  width: 100%;
 }
 
-.dividend-insight-card {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+.div-insight-clean {
+  margin: 0;
 }
 
-.dividend-insight-card p {
-  margin-top: 16px;
-  color: var(--soft);
+.div-insight-clean p {
+  margin: 16px 0 0;
+  color: #cbd5e1;
   font-size: 15px;
   line-height: 1.8;
 }
 
-.dividend-insight-card strong {
-  color: #ffd76d;
+.div-insight-clean strong {
+  color: #fde68a;
 }
 
-.dividend-table-wrap {
+/* TABLE */
+
+.div-table-wrap-clean {
   width: 100%;
   overflow-x: auto;
 }
 
-.dividend-table {
+.div-table-clean {
   width: 100%;
-  min-width: 920px;
+  min-width: 940px;
   border-collapse: collapse;
 }
 
-.dividend-table th {
+.div-table-clean th {
   padding: 0 14px 14px;
   text-align: left;
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 900;
   text-transform: uppercase;
-  border-bottom: 1px solid var(--border);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
 }
 
-.dividend-table td {
+.div-table-clean td {
   padding: 16px 14px;
-  color: var(--soft);
-  font-size: 13px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.dividend-table td strong {
-  display: block;
-  font-family: var(--mono);
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+  color: #e2e8f0;
   font-size: 14px;
-  margin-bottom: 4px;
+  vertical-align: middle;
+  white-space: nowrap;
 }
 
-.dividend-table td div {
-  color: var(--muted);
+.div-table-clean td:first-child strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.div-table-clean td:first-child div {
+  margin-top: 4px;
+  color: #94a3b8;
   font-size: 12px;
 }
 
-.dividend-input {
-  width: 108px;
-  height: 38px;
-  padding: 0 12px;
+.div-input-clean {
+  width: 112px;
+  height: 40px;
   border-radius: 12px;
-  border: 1px solid var(--border);
-  background: rgba(5, 10, 16, 0.56);
-  color: var(--text);
-  font-family: var(--mono);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(2, 6, 23, 0.62);
+  color: #ffffff;
+  padding: 0 12px;
   outline: none;
+  font: inherit;
 }
 
-.dividend-input:focus {
-  border-color: rgba(217, 185, 87, 0.42);
-  box-shadow: 0 0 0 4px rgba(217, 185, 87, 0.08);
+.div-input-clean:focus {
+  border-color: rgba(245, 200, 76, 0.45);
+  box-shadow: 0 0 0 4px rgba(245, 200, 76, 0.08);
 }
+
+/* TOOLTIP */
+
+.tip {
+  padding: 14px 16px !important;
+  border-radius: 16px !important;
+  background: rgba(2, 6, 23, 0.94) !important;
+  border: 1px solid rgba(148, 163, 184, 0.18) !important;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.36);
+}
+
+.tip-date {
+  margin-bottom: 10px;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.tip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 30px;
+  margin-top: 8px;
+  color: #e2e8f0;
+  font-size: 13px;
+}
+
+/* RESPONSIVE */
 
 @media (max-width: 1500px) {
-  .dividend-kpi-grid {
+  .div-kpi-grid-clean {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .dividend-hero-card {
+  .div-kpi-clean strong {
+    font-size: 30px;
+  }
+}
+
+@media (max-width: 1320px) {
+  .div-hero-clean {
     grid-template-columns: 1fr;
   }
 
-  .dividend-two-grid {
+  .div-hero-income {
+    min-height: 160px;
+  }
+
+  .div-two-grid-clean {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 900px) {
-  .dividend-center {
-    padding: 18px;
+  .dividend-body {
+    display: flex !important;
+    flex-direction: column !important;
   }
 
-  .dividend-kpi-grid {
+  .div-page {
+    padding: 18px !important;
+  }
+
+  .div-hero-clean {
+    padding: 24px;
+    border-radius: 26px;
+  }
+
+  .div-hero-clean h1 {
+    font-size: 40px;
+  }
+
+  .div-kpi-grid-clean {
     grid-template-columns: 1fr;
   }
 
-  .dividend-hero-card {
-    padding: 22px;
+  .div-chart-clean {
+    height: 320px;
+    min-height: 320px;
   }
 
-  .dividend-hero-card h1 {
-    font-size: 36px;
+  .div-bar-clean {
+    height: 280px;
+    min-height: 280px;
   }
 
-  .dividend-chart-box {
-    height: 300px;
-    min-height: 300px;
+  .div-hero-income strong,
+  .div-kpi-clean strong {
+    white-space: normal;
   }
+}
+
+/* GLOBAL FONT CONSISTENCY */
+
+.div-page,
+.div-page * {
+  font-family: var(--sans) !important;
+}
+
+/* TECHNICAL LABELS */
+
+.div-eyebrow-clean,
+.div-section-label-clean,
+.tip-date,
+.tip-row,
+.div-table-clean th {
+  font-family: var(--mono) !important;
+}
+
+/* BIG NUMBERS */
+
+.div-hero-income strong,
+.div-kpi-clean strong,
+.div-table-clean td,
+.div-input-clean {
+  font-family: var(--sans) !important;
+  letter-spacing: -0.04em !important;
+}
+
+/* REMOVE WEIRD SPACING */
+
+.div-page * {
+  word-spacing: normal !important;
+  text-rendering: optimizeLegibility;
 }

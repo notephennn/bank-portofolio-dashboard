@@ -332,7 +332,7 @@ export default function PortfolioSimulator({ goToPage }) {
         <main className="center">
           <div className="chart-header">
             <div>
-              <div className="chart-symbol">Portfolio Growth</div>
+              <div className="chart-symbol">Portofolio Growth</div>
               <div className="chart-name">
                 Weighted performance based on selected allocation
               </div>

@@ -26,7 +26,7 @@ const META = {
   BBNI: { name: "Bank Negara Indonesia", ticker: "BBNI.JK", hue: "#B07BAC" },
 };
 
-const REFRESH = 60;
+const REFRESH = 30;
 
 const N = (v) =>
   v != null && Number.isFinite(v)
@@ -49,12 +49,77 @@ function isOpen() {
   return d >= 1 && d <= 5 && m >= 540 && m <= 915;
 }
 
-async function fetchQuote(ticker) {
+function normalizeQuote(raw, ticker) {
+  const price = Number(raw?.price ?? raw?.regularMarketPrice ?? raw?.close);
+  const prev = Number(
+    raw?.prev ?? raw?.previousClose ?? raw?.regularMarketPreviousClose
+  );
+
+  if (!Number.isFinite(price)) return null;
+
+  return {
+    ticker,
+    price,
+    prev: Number.isFinite(prev) ? prev : null,
+    vol: Number(raw?.vol ?? raw?.volume ?? 0),
+    date: raw?.date || TODAY(),
+    provider: raw?.provider || "localhost",
+  };
+}
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = 9000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
   try {
-    const r = await fetch(`http://localhost:3001/api/quote/${ticker}`);
-    if (!r.ok) throw new Error();
-    return await r.json();
-  } catch {
+    const res = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      cache: "no-store",
+    });
+    return res;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function parseYahooChart(json, ticker) {
+  const result = json?.chart?.result?.[0];
+  const meta = result?.meta;
+  const quote = result?.indicators?.quote?.[0];
+  const timestamps = result?.timestamp || [];
+
+  const price = Number(meta?.regularMarketPrice);
+  const prev = Number(meta?.chartPreviousClose ?? meta?.previousClose);
+  const lastTs = timestamps[timestamps.length - 1];
+  const volume = Array.isArray(quote?.volume)
+    ? Number(quote.volume[quote.volume.length - 1] ?? 0)
+    : 0;
+
+  if (!Number.isFinite(price)) return null;
+
+  return {
+    ticker,
+    price,
+    prev: Number.isFinite(prev) ? prev : null,
+    vol: Number.isFinite(volume) ? volume : 0,
+    date: lastTs ? new Date(lastTs * 1000).toISOString().slice(0, 10) : TODAY(),
+    provider: "Yahoo Finance",
+  };
+}
+
+async function fetchQuote(ticker) {
+  // WAJIB lewat backend lokal supaya browser tidak kena CORS Yahoo/AllOrigins.
+  // Jalankan: node server.js
+  try {
+    const res = await fetchWithTimeout(`http://localhost:3001/api/quote/${ticker}`);
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const normalized = normalizeQuote(data, ticker);
+    return normalized;
+  } catch (error) {
+    console.warn(`Quote gagal dimuat untuk ${ticker}:`, error?.message || error);
     return null;
   }
 }
@@ -193,7 +258,8 @@ export default function StockDashboard({goToPage}) {
             dailyReturn: Number(r.Daily_Return),
             source: "csv",
           }))
-          .filter((r) => r.date && r.stock && Number.isFinite(r.close));
+          .filter((r) => r.date && r.stock && Number.isFinite(r.close))
+          .sort((a, b) => a.date.localeCompare(b.date));
 
         setCsvData(clean);
       })
@@ -238,7 +304,7 @@ export default function StockDashboard({goToPage}) {
 
       if (!live) return base;
 
-      const today = TODAY();
+      const today = live.date || TODAY();
       const last = base[base.length - 1];
 
       const ret = live.prev ? ((live.price - live.prev) / live.prev) * 100 : 0;
@@ -255,9 +321,9 @@ export default function StockDashboard({goToPage}) {
         stock,
         close: live.price,
         ma20,
-        volume: live.vol,
+        volume: live.vol || last?.volume || 0,
         dailyReturn: ret,
-        source: "live",
+        source: live.provider || "live",
       };
 
       if (last?.date === today) {
@@ -427,6 +493,27 @@ export default function StockDashboard({goToPage}) {
     };
   }, [displayData]);
 
+  const dateRangeLabel = useMemo(() => {
+    const allRows = STOCKS.flatMap((stock) => getMergedRows(stock));
+    if (!allRows.length) return "Loading data...";
+
+    const dates = allRows
+      .map((row) => row.date)
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b));
+
+    return `${dates[0]} → ${dates[dates.length - 1]}`;
+  }, [getMergedRows]);
+
+  const dataSourceLabel = useMemo(() => {
+    const providers = Object.values(quotes)
+      .map((quote) => quote?.provider)
+      .filter(Boolean);
+
+    if (providers.length) return providers.includes("Yahoo Finance") ? "Yahoo Finance delayed quote" : providers[0];
+    return "CSV fallback";
+  }, [quotes]);
+
   return (
     <div className="root">
       <div className="topbar">
@@ -439,36 +526,38 @@ export default function StockDashboard({goToPage}) {
         </div>
 
         <div className="topbar-right">
-          <div className="date-pill">2024-01-01 → 2026-05-13</div>
+          <div className="date-pill">{dateRangeLabel}</div>
           <Clock />
         </div>
       </div>
 
       <div className="body">
         <aside className="left">
-          <button
-            type="button"
-            className="sidebar-link active"
-            onClick={() => goToPage("dashboard")}
-          >
-            Dashboard
-          </button>
+          <div className="sidebar-nav">
+            <button
+              type="button"
+              className="sidebar-link active"
+              onClick={() => goToPage?.("dashboard")}
+            >
+              Dashboard
+            </button>
 
-          <button
-            type="button"
-            className="sidebar-link"
-            onClick={() => goToPage("portfolio")}
-          >
-            Portofolio Simulator
-          </button>
+            <button
+              type="button"
+              className="sidebar-link"
+              onClick={() => goToPage?.("portfolio")}
+            >
+              Portofolio Simulator
+            </button>
 
-          <button
-            type="button"
-            className="sidebar-link"
-            onClick={() => goToPage("dividend")}
-          >
-            Dividend Projection
-          </button>
+            <button
+              type="button"
+              className="sidebar-link"
+              onClick={() => goToPage?.("dividend")}
+            >
+              Dividend Projection
+            </button>
+          </div>
 
           <div className="side-divider" />
 
@@ -529,7 +618,9 @@ export default function StockDashboard({goToPage}) {
               <strong>{isOpen() ? "MARKET OPEN" : "MARKET CLOSED"}</strong>
             </div>
             <p>Last Update</p>
-            <span>{lastUpdate ? lastUpdate.toLocaleTimeString("id-ID") : "—"} WIB</span>
+            <span>
+              {lastUpdate ? lastUpdate.toLocaleTimeString("id-ID") : "—"} WIB · {dataSourceLabel}
+            </span>
           </div>
         </aside>
 

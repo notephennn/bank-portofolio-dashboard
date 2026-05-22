@@ -19,10 +19,10 @@ const LOT_SIZE = 100;
 const REFRESH = 60;
 
 const META = {
-  BBCA: { name: "Bank Central Asia", ticker: "BBCA.JK", hue: "#C9A84C" },
-  BBRI: { name: "Bank Rakyat Indonesia", ticker: "BBRI.JK", hue: "#6E9ECC" },
-  BMRI: { name: "Bank Mandiri", ticker: "BMRI.JK", hue: "#8FA876" },
-  BBNI: { name: "Bank Negara Indonesia", ticker: "BBNI.JK", hue: "#B07BAC" },
+  BBCA: { name: "Bank Central Asia", ticker: "BBCA.JK", hue: "#facc15" },
+  BBRI: { name: "Bank Rakyat Indonesia", ticker: "BBRI.JK", hue: "#60a5fa" },
+  BMRI: { name: "Bank Mandiri", ticker: "BMRI.JK", hue: "#34d399" },
+  BBNI: { name: "Bank Negara Indonesia", ticker: "BBNI.JK", hue: "#a78bfa" },
 };
 
 const DIVIDEND = {
@@ -56,12 +56,10 @@ async function fetchQuote(ticker) {
 
     const data = await res.json();
     const price = Number(data.price || data.regularMarketPrice || data.close);
-    const prev = Number(data.prev || data.previousClose || data.chartPreviousClose || price);
-    const vol = Number(data.volume || data.regularMarketVolume || 0);
 
     if (!Number.isFinite(price)) return null;
 
-    return { price, prev, vol };
+    return { price };
   } catch {
     return null;
   }
@@ -225,30 +223,18 @@ export default function DividendProjection({ goToPage }) {
         </div>
       </div>
 
-      <div className="body portfolio-body">
+      <div className="body dividend-body">
         <aside className="left">
           <div className="sidebar-nav">
-            <button
-              type="button"
-              className="sidebar-link"
-              onClick={() => goToPage?.("dashboard")}
-            >
+            <button type="button" className="sidebar-link" onClick={() => goToPage?.("dashboard")}>
               Dashboard
             </button>
 
-            <button
-              type="button"
-              className="sidebar-link"
-              onClick={() => goToPage?.("portfolio")}
-            >
+            <button type="button" className="sidebar-link" onClick={() => goToPage?.("portfolio")}>
               Portofolio Simulator
             </button>
 
-            <button
-              type="button"
-              className="sidebar-link active"
-              onClick={() => goToPage?.("dividend")}
-            >
+            <button type="button" className="sidebar-link active" onClick={() => goToPage?.("dividend")}>
               Dividend Projection
             </button>
           </div>
@@ -260,14 +246,7 @@ export default function DividendProjection({ goToPage }) {
               <strong>Dividend Growth</strong>
               <span>{growthRate}% / year</span>
             </div>
-            <input
-              type="range"
-              min="0"
-              max="20"
-              step="1"
-              value={growthRate}
-              onChange={(e) => setGrowthRate(Number(e.target.value))}
-            />
+            <input type="range" min="0" max="20" step="1" value={growthRate} onChange={(e) => setGrowthRate(Number(e.target.value))} />
           </div>
 
           <div className="allocation-card">
@@ -275,14 +254,7 @@ export default function DividendProjection({ goToPage }) {
               <strong>Projection Period</strong>
               <span>{years} years</span>
             </div>
-            <input
-              type="range"
-              min="1"
-              max="15"
-              step="1"
-              value={years}
-              onChange={(e) => setYears(Number(e.target.value))}
-            />
+            <input type="range" min="1" max="15" step="1" value={years} onChange={(e) => setYears(Number(e.target.value))} />
           </div>
 
           <div className="side-divider" />
@@ -293,81 +265,82 @@ export default function DividendProjection({ goToPage }) {
           </div>
         </aside>
 
-        <main className="center dividend-center">
-          <section className="dividend-hero-card">
-            <div>
-              <div className="eyebrow">Projected Passive Income</div>
+        <main className="center div-page">
+          <section className="div-hero-clean">
+            <div className="div-hero-left">
+              <div className="div-eyebrow-clean">Projected Passive Income</div>
               <h1>Estimasi Dividen Tahunan Saham Bank</h1>
               <p>
-                Hitung potensi pendapatan dividen berdasarkan jumlah lot, average price, DPS, yield on cost, dan proyeksi pertumbuhan dividen.
+                Hitung potensi pendapatan dividen berdasarkan jumlah lot, average price,
+                DPS, yield on cost, dan proyeksi pertumbuhan dividen.
               </p>
             </div>
 
-            <div className="dividend-total-card">
-              <div className="hero-card-label">Annual Dividend</div>
-              <div className="hero-card-value">{rupiah(summary.annualDividend)}</div>
-              <div className="hero-card-sub">Monthly avg: {rupiah(summary.monthlyDividend)}</div>
+            <div className="div-hero-income">
+              <span>Annual Dividend</span>
+              <strong>{rupiah(summary.annualDividend)}</strong>
+              <small>Monthly avg: {rupiah(summary.monthlyDividend)}</small>
             </div>
           </section>
 
-          <section className="portfolio-metric-grid dividend-kpi-grid">
-            <div className="portfolio-metric-card">
+          <section className="div-kpi-grid-clean">
+            <div className="div-kpi-clean">
               <span>Total Invested</span>
               <strong>{rupiah(summary.invested)}</strong>
               <small>Modal berdasarkan average price</small>
             </div>
 
-            <div className="portfolio-metric-card">
+            <div className="div-kpi-clean">
               <span>Market Value</span>
               <strong>{rupiah(summary.marketValue)}</strong>
               <small>Harga terbaru / fallback</small>
             </div>
 
-            <div className="portfolio-metric-card">
+            <div className="div-kpi-clean">
               <span>Yield on Cost</span>
               <strong>{percent(summary.yieldOnCost)}</strong>
               <small>Dividen dibanding modal beli</small>
             </div>
 
-            <div className="portfolio-metric-card">
+            <div className="div-kpi-clean">
               <span>Current Yield</span>
               <strong>{percent(summary.currentYield)}</strong>
               <small>Dividen dibanding market value</small>
             </div>
           </section>
 
-          <section className="dividend-panel-card">
-            <div className="dividend-section-head">
+          <section className="div-panel-clean">
+            <div className="div-section-head-clean">
               <div>
-                <div className="section-title">Dividend Projection</div>
-                <div className="dividend-chart-title">Annual vs Cumulative Dividend</div>
+                <div className="div-section-label-clean">Dividend Projection</div>
+                <h3>Annual vs Cumulative Dividend</h3>
               </div>
             </div>
 
-            <div className="dividend-chart-box">
+            <div className="div-chart-clean">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={projectionData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.08)" />
                   <XAxis dataKey="year" tickFormatter={(v) => `Y${v}`} stroke="#94a3b8" />
                   <YAxis tickFormatter={(v) => `${Math.round(v / 1000000)}jt`} stroke="#94a3b8" />
                   <Tooltip content={<ProjectionTooltip />} />
-                  <Line type="monotone" dataKey="Dividend" name="Annual Dividend" stroke="#C9A84C" strokeWidth={3} dot={false} />
-                  <Line type="monotone" dataKey="Cumulative" name="Cumulative Dividend" stroke="#6E9ECC" strokeWidth={3} dot={false} />
+                  <Line type="monotone" dataKey="Dividend" name="Annual Dividend" stroke="#facc15" strokeWidth={3} dot={false} />
+                  <Line type="monotone" dataKey="Cumulative" name="Cumulative Dividend" stroke="#60a5fa" strokeWidth={3} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </section>
 
-          <section className="dividend-two-grid">
-            <div className="dividend-panel-card">
-              <div className="dividend-section-head">
+          <section className="div-two-grid-clean">
+            <div className="div-panel-clean">
+              <div className="div-section-head-clean">
                 <div>
-                  <div className="section-title">Dividend Contribution</div>
-                  <div className="dividend-chart-title">Estimasi dividen per saham</div>
+                  <div className="div-section-label-clean">Dividend Contribution</div>
+                  <h3>Estimasi dividen per saham</h3>
                 </div>
               </div>
 
-              <div className="dividend-bar-box">
+              <div className="div-bar-clean">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={rows}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.08)" />
@@ -384,8 +357,8 @@ export default function DividendProjection({ goToPage }) {
               </div>
             </div>
 
-            <div className="dividend-insight-card">
-              <div className="section-title">Dividend Insight</div>
+            <div className="div-insight-clean">
+              <div className="div-section-label-clean">Dividend Insight</div>
               <p>
                 Kontributor dividen terbesar saat ini adalah <strong>{bestStock?.stock}</strong> dengan estimasi{" "}
                 <strong>{rupiah(bestStock?.annualDividend || 0)}</strong> per tahun. Dengan asumsi pertumbuhan dividen {growthRate}% per tahun,
@@ -395,16 +368,16 @@ export default function DividendProjection({ goToPage }) {
             </div>
           </section>
 
-          <section className="dividend-panel-card">
-            <div className="dividend-section-head">
+          <section className="div-panel-clean">
+            <div className="div-section-head-clean">
               <div>
-                <div className="section-title">Holdings Input</div>
-                <div className="dividend-chart-title">Portfolio Dividend Detail</div>
+                <div className="div-section-label-clean">Holdings Input</div>
+                <h3>Portfolio Dividend Detail</h3>
               </div>
             </div>
 
-            <div className="dividend-table-wrap">
-              <table className="dividend-table">
+            <div className="div-table-wrap-clean">
+              <table className="div-table-clean">
                 <thead>
                   <tr>
                     <th>Stock</th>
@@ -424,22 +397,10 @@ export default function DividendProjection({ goToPage }) {
                         <div>{row.name}</div>
                       </td>
                       <td>
-                        <input
-                          className="dividend-input"
-                          type="number"
-                          min="0"
-                          value={holdings[row.stock].lots}
-                          onChange={(e) => updateHolding(row.stock, "lots", e.target.value)}
-                        />
+                        <input className="div-input-clean" type="number" min="0" value={holdings[row.stock].lots} onChange={(e) => updateHolding(row.stock, "lots", e.target.value)} />
                       </td>
                       <td>
-                        <input
-                          className="dividend-input"
-                          type="number"
-                          min="0"
-                          value={holdings[row.stock].avgPrice}
-                          onChange={(e) => updateHolding(row.stock, "avgPrice", e.target.value)}
-                        />
+                        <input className="div-input-clean" type="number" min="0" value={holdings[row.stock].avgPrice} onChange={(e) => updateHolding(row.stock, "avgPrice", e.target.value)} />
                       </td>
                       <td>{number(row.price)}</td>
                       <td>{number(row.dps)}</td>
