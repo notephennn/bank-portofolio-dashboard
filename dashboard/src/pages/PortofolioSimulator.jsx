@@ -251,7 +251,7 @@ export default function PortfolioSimulator({ goToPage }) {
         <div className="logo">
           <div className="mark">IDX</div>
           <div>
-            <div className="logo-title">PORTFOLIO SIMULATOR</div>
+            <div className="logo-title">PORTOFOLIO SIMULATOR</div>
             <div className="logo-sub">BANKING ALLOCATION ENGINE</div>
           </div>
         </div>
@@ -271,9 +271,17 @@ export default function PortfolioSimulator({ goToPage }) {
             <button
               type="button"
               className="sidebar-link active"
-              onClick={() => goToPage?.("portofolio")}
+              onClick={() => goToPage?.("portfolio")}
             >
               Portofolio Simulator
+            </button>
+
+            <button
+              type="button"
+              className="sidebar-link"
+              onClick={() => goToPage?.("dividend")}
+            >
+              Dividend Projection
             </button>
           </div>
 

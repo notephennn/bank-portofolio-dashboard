@@ -457,9 +457,17 @@ export default function StockDashboard({goToPage}) {
           <button
             type="button"
             className="sidebar-link"
-            onClick={() => goToPage("portofolio")}
+            onClick={() => goToPage("portfolio")}
           >
             Portofolio Simulator
+          </button>
+
+          <button
+            type="button"
+            className="sidebar-link"
+            onClick={() => goToPage("dividend")}
+          >
+            Dividend Projection
           </button>
 
           <div className="side-divider" />
