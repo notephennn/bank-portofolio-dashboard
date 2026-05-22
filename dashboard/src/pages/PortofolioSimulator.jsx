@@ -252,7 +252,7 @@ export default function PortfolioSimulator({ goToPage }) {
           <div className="mark">IDX</div>
           <div>
             <div className="logo-title">PORTOFOLIO SIMULATOR</div>
-            <div className="logo-sub">BANKING ALLOCATION ENGINE</div>
+            <div className="logo-sub">INDONESIAN BANKING</div>
           </div>
         </div>
       </div>

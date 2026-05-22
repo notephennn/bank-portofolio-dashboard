@@ -211,7 +211,7 @@ export default function DividendProjection({ goToPage }) {
           <div className="mark">IDX</div>
           <div>
             <div className="logo-title">DIVIDEND PROJECTION</div>
-            <div className="logo-sub">BANKING PASSIVE INCOME ENGINE</div>
+            <div className="logo-sub">INDONESIAN BANKING</div>
           </div>
         </div>
 
