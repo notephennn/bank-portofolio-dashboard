@@ -237,6 +237,10 @@ export default function DividendProjection({ goToPage }) {
             <button type="button" className="sidebar-link active" onClick={() => goToPage?.("dividend")}>
               Dividend Projection
             </button>
+
+            <button type="button" className="sidebar-link" onClick={() => goToPage?.("news")}>
+              Market News
+            </button>
           </div>
 
           <div className="panel-title">DIVIDEND SETTINGS</div>

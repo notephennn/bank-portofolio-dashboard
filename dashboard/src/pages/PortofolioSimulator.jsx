@@ -283,6 +283,14 @@ export default function PortfolioSimulator({ goToPage }) {
             >
               Dividend Projection
             </button>
+
+            <button
+              type="button"
+              className="sidebar-link"
+              onClick={() => goToPage?.("news")}
+            >
+              Market News
+            </button>
           </div>
 
           <div className="panel-title">ALLOCATION</div>

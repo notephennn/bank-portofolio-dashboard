@@ -557,6 +557,14 @@ export default function StockDashboard({goToPage}) {
             >
               Dividend Projection
             </button>
+
+            <button
+              type="button"
+              className="sidebar-link"
+              onClick={() => goToPage?.("news")}
+            >
+              Market News
+            </button>
           </div>
 
           <div className="side-divider" />
